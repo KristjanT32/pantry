@@ -1,0 +1,267 @@
+.split-pane-divider {
+    -fx-background-color: "gray";
+    -fx-fill-width: 1px;
+    -fx-padding: 0 1 0 0;
+}
+
+.green-positive {
+    -fx-text-fill: #2bb62b;
+}
+
+.font-icon.green-positive {
+    -fx-fill: #2bb62b;
+}
+
+.red-negative {
+    -fx-text-fill: #b31f1f;
+}
+
+.font-icon.red-negative {
+    -fx-fill: #b31f1f;
+}
+
+.utility-view {
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-border-color: gray;
+
+    -fx-padding: 10px;
+}
+
+.utility-container {
+    -fx-border-width: 1px 0 0 0;
+    -fx-border-color: gray;
+}
+
+.transaction-list {
+    -fx-padding: 5px;
+}
+
+.category-expense-breakdown-list {
+    -fx-padding: 5px;
+}
+
+.product-list {
+    -fx-padding: 5px;
+}
+
+/* <editor-fold desc="Utility cell"> */
+
+
+.utility-cell {
+    -fx-border-width: 1px;
+    -fx-border-color: gray;
+    -fx-padding: 5px;
+    -fx-cursor: hand;
+
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+}
+
+.utility-cell:hover {
+    -fx-border-color: black;
+    -fx-border-width: 1px;
+}
+
+/* </editor-fold> */
+
+/* <editor-fold desc="Account cell"> */
+
+.account-cell {
+    -fx-border-width: 1px;
+    -fx-border-color: gray;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-padding: 5px;
+    -fx-cursor: hand;
+}
+
+.account-cell:hover {
+    -fx-border-color: black;
+    -fx-border-width: 1px;
+}
+
+/* </editor-fold> */
+
+/* <editor-fold desc="Transaction cell"> */
+
+.transaction-cell.inflow {
+    -fx-background-color: #99ef99;
+}
+
+.transaction-cell.outflow {
+    -fx-background-color: #ec9696;
+}
+
+.transaction-cell.transfer {
+    -fx-background-color: #93d3ea;
+}
+
+.transaction-list .list-cell:filled, .transaction-cell {
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.transaction-list .list-cell:selected, .transaction-list .list-cell:focused {
+    -fx-border-color: black;
+}
+
+/* </editor-fold> */
+
+/* <editor-fold desc="Custom category cell"> */
+.custom-category-cell {
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.custom-category-list .list-cell:filled, .custom-category-cell {
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-padding: 2px;
+}
+
+.custom-category-list .list-cell:selected, .custom-category-list .list-cell:focused {
+    -fx-border-color: black;
+}
+
+/* </editor-fold> */
+
+/* <editor-fold desc="Product cell"> */
+.product-cell {
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.product-list .list-cell:filled, .product-cell {
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-padding: 2px;
+}
+
+.product-list .list-cell:selected, .product-list .list-cell:focused {
+    -fx-border-color: black;
+}
+
+/* </editor-fold> */
+
+/* <editor-fold desc="Ingredient cell"> */
+.ingredient-cell {
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.ingredient-list .list-cell:filled, .ingredient-cell {
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-padding: 2px;
+}
+
+.ingredient-list .list-cell:selected, .ingredient-cell .list-cell:focused {
+    -fx-border-color: black;
+}
+
+/* </editor-fold> */
+
+/* <editor-fold desc="Category expense total cell"> */
+
+.category-expense-total-cell {
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-padding: 5px;
+}
+
+.category-expense-breakdown-list .list-cell:filled {
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.category-expense-breakdown-list .list-cell:selected {
+    -fx-border-color: black;
+}
+
+/* </editor-fold> */
+
+.leftmost-container {
+    -fx-background-color: #cacaca;
+    -fx-background-radius: 10px 0 0 10px;
+}
+
+.rightmost-container {
+    -fx-background-radius: 0 10px 10px 0;
+}
+
+.hoverable-container:hover {
+    -fx-background-color: #cacaca;
+}
+
+/** <editor-fold desc="Flairs for transaction info"> **/
+.flair-account {
+    -fx-background-color: #99dbef;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-padding: 5px;
+    -fx-font-size: 16px;
+}
+
+.flair-deposit {
+    -fx-background-color: #99ef99;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-padding: 5px;
+    -fx-font-size: 16px;
+}
+
+.flair-withdrawal {
+    -fx-background-color: #ec9696;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-padding: 5px;
+    -fx-font-size: 16px;
+}
+
+.flair-transfer {
+    -fx-background-color: #99b7ef;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-padding: 5px;
+    -fx-font-size: 16px;
+}
+
+.flair-amount {
+    -fx-background-color: #e1e1e1;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-font-size: 24px;
+}
+
+.flair-generic {
+    -fx-background-color: #e1e1e1;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-font-size: 16px;
+}
+
+.flair-generic.bold {
+    -fx-background-color: #e1e1e1;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+/* </editor-fold> */
