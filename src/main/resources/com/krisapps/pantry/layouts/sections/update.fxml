@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox fx:id="updateView" alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1280.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.krisapps.pantry.controllers.UpdateInventoryController">
+   <children>
+      <HBox>
+         <VBox.margin>
+            <Insets bottom="10.0" />
+         </VBox.margin>
+         <children>
+            <Label fx:id="primaryLabel11" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" text="Update inventory">
+               <font>
+                  <Font name="System Bold" size="22.0" />
+               </font>
+            </Label>
+            <Button fx:id="backButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" styleClass="medium-label" text="Dashboard">
+               <HBox.margin>
+                  <Insets left="15.0" />
+               </HBox.margin>
+               <graphic>
+                  <FontIcon iconLiteral="fltfal-arrow-hook-down-left-24" iconSize="16" />
+               </graphic>
+            </Button>
+         </children>
+      </HBox>
+      <HBox spacing="20.0">
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="25.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+               <children>
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" HBox.hgrow="SOMETIMES">
+                     <children>
+                        <FontIcon iconLiteral="fltral-archive-24" iconSize="24" />
+                        <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="xl-label" text="XXX total changes" HBox.hgrow="ALWAYS">
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                        </Label>
+                     </children>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </HBox>
+                  <Separator maxWidth="1.7976931348623157E308" orientation="VERTICAL" HBox.hgrow="ALWAYS" />
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <FontIcon iconLiteral="fltral-arrow-down-24" iconSize="24" />
+                        <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="xl-label" text="XXX stock removed" HBox.hgrow="ALWAYS">
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <FontIcon iconLiteral="fltral-arrow-up-24" iconSize="24" />
+                        <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="xl-label" text="XXX XXX stock added" HBox.hgrow="ALWAYS">
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </HBox>
+               </children>
+            </HBox>
+            <MenuButton maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" styleClass="xl-label" text="Update item..." HBox.hgrow="ALWAYS">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Choose item" />
+                  <MenuItem mnemonicParsing="false" text="New item" />
+               </items>
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </MenuButton>
+            <Button disable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Commit changes" HBox.hgrow="ALWAYS">
+               <styleClass>
+                  <String fx:value="xl-label" />
+                  <String fx:value="positive" />
+               </styleClass>
+               <graphic>
+                  <FontIcon iconLiteral="fltfmz-save-24" iconSize="24" wrappingWidth="36.0" />
+               </graphic>
+            </Button>
+         </children>
+         <VBox.margin>
+            <Insets bottom="5.0" top="10.0" />
+         </VBox.margin>
+      </HBox>
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
+         <children>
+            <ListView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="notification-list" VBox.vgrow="ALWAYS">
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </ListView>
+         </children>
+         <VBox.margin>
+            <Insets bottom="10.0" top="10.0" />
+         </VBox.margin>
+      </VBox>
+   </children>
+   <stylesheets>
+      <URL value="@../../stylesheets/main.css" />
+      <URL value="@../../stylesheets/core-ui.css" />
+   </stylesheets>
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+</VBox>
