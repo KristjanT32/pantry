@@ -6,9 +6,7 @@ import com.krisapps.pantry.util.Logging;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,7 +20,7 @@ public class PantryController {
     /* <editor-fold desc="FXML declarations"> */
 
     @FXML
-    private Pane root;
+    private StackPane root;
 
 
     /* </editor-fold> */
@@ -50,9 +48,12 @@ public class PantryController {
     }
 
     private void preloadFXML() {
+        logger.info("Preloading FXML...", "FXML");
         for (ProgramSection section: ProgramSection.values()) {
+            if (section.getLayoutPath().isEmpty()) continue;
             loadedSections.put(section, loadView(section));
         }
+        logger.info("Done.", "FXML");
     }
 
     private Parent loadView(ProgramSection view) {
@@ -67,7 +68,6 @@ public class PantryController {
 
     public void switchToSection(ProgramSection section) {
         root.getChildren().setAll(loadedSections.getOrDefault(section, loadView(section)));
-        logger.info("Switched to " + section.name(), "Sections");
     }
 
     private void initUI() {

@@ -258,6 +258,10 @@
 
 /* <editor-fold desc="Text Field and Text Area"> */
 
+.text-field, .text-area, .combo-box > .text-field {
+    -fx-prompt-text-fill: #555555 !important;
+}
+
 .text-field.medium, .text-area.medium {
     -fx-font-size: 14px;
 }

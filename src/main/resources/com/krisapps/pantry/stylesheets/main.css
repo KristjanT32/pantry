@@ -51,6 +51,21 @@
     -fx-padding: 18px;
 }
 
+.notification-highlight-clear {
+    -fx-background-color: #a3f1c5;
+    -fx-border-color: #89c687;
+}
+
+.notification-highlight-info {
+    -fx-background-color: #a3d6f1;
+    -fx-border-color: #87a0c6;
+}
+
+.notification-highlight-warning {
+    -fx-background-color: #f1f1a3;
+    -fx-border-color: #c6c687;
+}
+
 .text-container {
     -fx-background-color: transparent;
     -fx-border-color: gray;

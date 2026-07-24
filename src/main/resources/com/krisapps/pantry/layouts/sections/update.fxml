@@ -78,8 +78,8 @@
             </HBox>
             <MenuButton maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" styleClass="xl-label" text="Update item..." HBox.hgrow="ALWAYS">
                <items>
-                  <MenuItem mnemonicParsing="false" text="Choose item" />
-                  <MenuItem mnemonicParsing="false" text="New item" />
+                  <MenuItem fx:id="selectItemButton" mnemonicParsing="false" text="Choose item" />
+                  <MenuItem fx:id="addItemButton" mnemonicParsing="false" text="New item" />
                </items>
                <font>
                   <Font size="18.0" />

@@ -1,9 +1,11 @@
 package com.krisapps.pantry.util;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.stream.JsonReader;
-import com.krisapps.pantry.types.ConfigurationData;
+import com.krisapps.pantry.types.data.ConfigurationData;
+import com.krisapps.pantry.types.data.inventory.ItemLocation;
 import com.krisapps.pantry.util.misc.LocalDateTimeTypeAdapter;
 import com.krisapps.pantry.util.misc.LocalDateTypeAdapter;
 import javafx.application.Platform;
@@ -16,7 +18,9 @@ import java.nio.file.Path;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 
 @SuppressWarnings("ConstantConditions")
@@ -45,6 +49,7 @@ public class DataManager {
     public static DataManager getInstance() {
         if (instance == null) {
             instance = new DataManager();
+            instance.initialize();
         }
         return instance;
     }
@@ -108,9 +113,79 @@ public class DataManager {
 
     private void initializeDatabase(Connection currentConnection) {
         try (Statement statement = currentConnection.createStatement()) {
+            // Create groups table
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS "groups" (
+                    	"id"	INTEGER NOT NULL,
+                    	"name"	TEXT NOT NULL DEFAULT 'Unnamed group',
+                    	"description"	TEXT NOT NULL DEFAULT 'No description.',
+                    	PRIMARY KEY("id" AUTOINCREMENT)
+                    )
+                    """);
 
-            // Init code
+            // Create categories table
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS "categories" (
+                    	"id"	INTEGER NOT NULL,
+                    	"name"	TEXT NOT NULL DEFAULT 'Unnamed category',
+                    	"description"	TEXT NOT NULL DEFAULT 'No description.',
+                    	PRIMARY KEY("id" AUTOINCREMENT)
+                    )
+                    """);
 
+            // Create locations table
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS "locations" (
+                    	"id"	INTEGER NOT NULL,
+                    	"name"	TEXT NOT NULL DEFAULT 'Unnamed location' UNIQUE,
+                    	"description"	TEXT NOT NULL DEFAULT 'No description.',
+                    	"parent_location_id"	INTEGER,
+                    	PRIMARY KEY("id" AUTOINCREMENT),
+                    	CONSTRAINT "parent_location_fk" FOREIGN KEY("parent_location_id") REFERENCES "locations"("id")
+                    )
+                    """);
+
+            // Create inventory table
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS "inventory" (
+                    	"id"	INTEGER NOT NULL,
+                    	"name"	TEXT NOT NULL,
+                    	"quantity"	REAL NOT NULL DEFAULT 0,
+                    	"preferred_min_quantity"	REAL NOT NULL DEFAULT 1,
+                    	"expires_at"	REAL,
+                    	"last_stocked_at"	REAL,
+                    	"last_stocked_quantity"	REAL,
+                    	"location"	INTEGER,
+                    	"description"	TEXT NOT NULL DEFAULT 'No description.',
+                    	"type"	TEXT NOT NULL DEFAULT 'GENERIC',
+                    	PRIMARY KEY("id" AUTOINCREMENT),
+                    	CONSTRAINT "location_fk" FOREIGN KEY("location") REFERENCES "locations"("id")
+                    )
+                    """);
+
+            // Create list item tables for categories and groups
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS "group_elements" (
+                    	"relation_id"	INTEGER NOT NULL,
+                    	"item_id"	INTEGER NOT NULL,
+                    	"group_id"	INTEGER NOT NULL,
+                    	PRIMARY KEY("relation_id" AUTOINCREMENT),
+                    	CONSTRAINT "group_fk" FOREIGN KEY("group_id") REFERENCES "groups"("id"),
+                    	CONSTRAINT "item_fk" FOREIGN KEY("item_id") REFERENCES "inventory"("id")
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS "category_elements" (
+                    	"relation_id"	INTEGER NOT NULL,
+                    	"item_id"	INTEGER NOT NULL,
+                    	"category_id"	INTEGER NOT NULL,
+                    	PRIMARY KEY("relation_id" AUTOINCREMENT),
+                    	CONSTRAINT "category_fk" FOREIGN KEY("category_id") REFERENCES "categories"("id"),
+                    	CONSTRAINT "item_fk" FOREIGN KEY("item_id") REFERENCES "inventory"("id")
+                    )
+                    """);
+
+            statement.execute("INSERT OR IGNORE INTO locations (id, name, description) VALUES (0, 'No location assigned', 'There is no location assigned to this item.')");
             statement.execute("PRAGMA user_version = 1");
             log("Database successfully initialized!");
         } catch (SQLException e) {
@@ -289,6 +364,59 @@ public class DataManager {
         }
     }
 
+    public ItemLocation mapRowToLocation(ResultSet row) throws SQLException {
+        return new ItemLocation(
+                row.getInt("id"),
+                row.getString("name"),
+                row.getString("description"),
+                null /* Replace with query for location based on id */
+        );
+    }
+
+    public Optional<ItemLocation> getLocation(int locationId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (locationId == -1) {
+            throw new IllegalArgumentException("Location ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM locations WHERE id = ?")) {
+            statement.setInt(1, locationId);
+            ResultSet response = statement.executeQuery();
+
+            if (response.next()) {
+                return Optional.of(mapRowToLocation(response));
+            } else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public ArrayList<ItemLocation> getLocations() {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM locations;")) {
+            ResultSet response = statement.executeQuery();
+            ArrayList<ItemLocation> locations = new ArrayList<>();
+
+            while (response.next()) {
+                locations.add(mapRowToLocation(response));
+            }
+
+            return locations;
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+            return new ArrayList<>();
+        }
+    }
+
     // </editor-fold>
 
     // <editor-fold desc="Data modification">
@@ -320,6 +448,65 @@ public class DataManager {
         }
         configurationData.setDebugEnabled(enabled);
     }
+
+
+    public void addLocation(ItemLocation location) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (location == null) {
+            return;
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("INSERT INTO locations (name, description, parent_location_id) VALUES (?, ?, ?)")) {
+            statement.setString(1, location.name());
+            statement.setString(2, location.description());
+            statement.setInt(3, location.hasParentLocation() ? location.parent().databaseId() : null);
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void updateLocation(int databaseId, ItemLocation data) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (databaseId == -1) {
+            throw new IllegalArgumentException("Location ID cannot be -1!");
+        }
+
+        if (data == null) {
+            throw new IllegalArgumentException("Location data cannot be null!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("UPDATE locations SET name = ?, description = ?, parent_location_id = ? WHERE id = ?")) {
+            statement.setString(1, data.name());
+            statement.setString(2, data.description());
+            statement.setInt(3, data.hasParentLocation() ? data.parent().databaseId() : null);
+            statement.setInt(4, databaseId);
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void deleteLocation(int databaseId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (databaseId == -1) {
+            throw new IllegalArgumentException("Location ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM locations WHERE id = ?")) {
+            statement.setInt(1, databaseId);
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
     //</editor-fold>
 
 }

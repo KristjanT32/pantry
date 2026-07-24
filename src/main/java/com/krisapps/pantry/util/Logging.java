@@ -28,10 +28,10 @@ public class Logging {
     // Holds currently open log sections not yet written to the log file.
     private final HashMap<String, LinkedList<String>> sectionQueue = new HashMap<>();
 
-    private final String MSG_FORMAT_FULL = "[%s Income Utility/%s] [%s]: %s%n";
-    private final String MSG_FORMAT_CONCISE = "[%s Income Utility/%s]: %s%n";
-    private final String MSG_FORMAT_DEBUG_CONCISE = "[%s Income Utility/DBG]: %s%n";
-    private final String MSG_FORMAT_DEBUG_FULL = "[%s Income Utility/DBG] [%s]: %s%n";
+    private final String MSG_FORMAT_FULL = "[%s Pantry/%s] [%s]: %s%n";
+    private final String MSG_FORMAT_CONCISE = "[%s Pantry/%s]: %s%n";
+    private final String MSG_FORMAT_DEBUG_CONCISE = "[%s Pantry/DBG]: %s%n";
+    private final String MSG_FORMAT_DEBUG_FULL = "[%s Pantry/DBG] [%s]: %s%n";
 
 
     private Logging() {
