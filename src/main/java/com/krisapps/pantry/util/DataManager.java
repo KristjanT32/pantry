@@ -5,7 +5,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.stream.JsonReader;
 import com.krisapps.pantry.types.data.ConfigurationData;
+import com.krisapps.pantry.types.data.inventory.ItemCategory;
+import com.krisapps.pantry.types.data.inventory.ItemGroup;
 import com.krisapps.pantry.types.data.inventory.ItemLocation;
+import com.krisapps.pantry.types.data.inventory.PantryItem;
 import com.krisapps.pantry.util.misc.LocalDateTimeTypeAdapter;
 import com.krisapps.pantry.util.misc.LocalDateTypeAdapter;
 import javafx.application.Platform;
@@ -99,6 +102,7 @@ public class DataManager {
                     initializeDatabase(currentConnection);
                 }
 
+                stmt.execute("PRAGMA foreign_keys = ON;");
             } catch (SQLException e) {
                 log("Failed to check database state. Error: " + e.getMessage());
                 logger.logStackTrace(e);
@@ -119,7 +123,9 @@ public class DataManager {
                     	"id"	INTEGER NOT NULL,
                     	"name"	TEXT NOT NULL DEFAULT 'Unnamed group',
                     	"description"	TEXT NOT NULL DEFAULT 'No description.',
-                    	PRIMARY KEY("id" AUTOINCREMENT)
+                    	"parent_group_id"	INTEGER NOT NULL DEFAULT 0,
+                    	PRIMARY KEY("id" AUTOINCREMENT),
+                    	CONSTRAINT "parent_group_fk" FOREIGN KEY("parent_group_id") REFERENCES "groups"("id")
                     )
                     """);
 
@@ -151,7 +157,8 @@ public class DataManager {
                     	"id"	INTEGER NOT NULL,
                     	"name"	TEXT NOT NULL,
                     	"quantity"	REAL NOT NULL DEFAULT 0,
-                    	"preferred_min_quantity"	REAL NOT NULL DEFAULT 1,
+                    	"quantity_per_pack"	REAL NOT NULL DEFAULT 0,
+                    	"preferred_min_quantity"	INTEGER NOT NULL DEFAULT 1,
                     	"expires_at"	REAL,
                     	"last_stocked_at"	REAL,
                     	"last_stocked_quantity"	REAL,
@@ -160,7 +167,7 @@ public class DataManager {
                     	"type"	TEXT NOT NULL DEFAULT 'GENERIC',
                     	PRIMARY KEY("id" AUTOINCREMENT),
                     	CONSTRAINT "location_fk" FOREIGN KEY("location") REFERENCES "locations"("id")
-                    )
+                    );
                     """);
 
             // Create list item tables for categories and groups
@@ -186,6 +193,7 @@ public class DataManager {
                     """);
 
             statement.execute("INSERT OR IGNORE INTO locations (id, name, description) VALUES (0, 'No location assigned', 'There is no location assigned to this item.')");
+            statement.execute("PRAGMA foreign_keys = ON;");
             statement.execute("PRAGMA user_version = 1");
             log("Database successfully initialized!");
         } catch (SQLException e) {
@@ -373,6 +381,23 @@ public class DataManager {
         );
     }
 
+    public ItemGroup mapRowToGroup(ResultSet row) throws SQLException {
+        return new ItemGroup(
+                row.getInt("id"),
+                row.getString("name"),
+                row.getString("description"),
+                null /* Replace with query for parent group based on id */
+        );
+    }
+
+    public ItemCategory mapRowToCategory(ResultSet row) throws SQLException {
+        return new ItemCategory(
+                row.getInt("id"),
+                row.getString("name"),
+                row.getString("description")
+        );
+    }
+
     public Optional<ItemLocation> getLocation(int locationId) {
         if (currentConnection == null) {
             currentConnection = getDatabaseConnection();
@@ -392,9 +417,9 @@ public class DataManager {
                 return Optional.empty();
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            logger.logStackTrace(e);
+            return Optional.empty();
         }
-
     }
 
     public ArrayList<ItemLocation> getLocations() {
@@ -408,6 +433,94 @@ public class DataManager {
 
             while (response.next()) {
                 locations.add(mapRowToLocation(response));
+            }
+
+            return locations;
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+            return new ArrayList<>();
+        }
+    }
+
+    public Optional<ItemGroup> getGroup(int groupId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (groupId == -1) {
+            throw new IllegalArgumentException("Group ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM groups WHERE id = ?")) {
+            statement.setInt(1, groupId);
+            ResultSet response = statement.executeQuery();
+
+            if (response.next()) {
+                return Optional.of(mapRowToGroup(response));
+            } else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+            return Optional.empty();
+        }
+    }
+
+    public ArrayList<ItemGroup> getGroups() {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM groups;")) {
+            ResultSet response = statement.executeQuery();
+            ArrayList<ItemGroup> locations = new ArrayList<>();
+
+            while (response.next()) {
+                locations.add(mapRowToGroup(response));
+            }
+
+            return locations;
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+            return new ArrayList<>();
+        }
+    }
+
+    public Optional<ItemCategory> getCategory(int categoryId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (categoryId == -1) {
+            throw new IllegalArgumentException("Category ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM categories WHERE id = ?")) {
+            statement.setInt(1, categoryId);
+            ResultSet response = statement.executeQuery();
+
+            if (response.next()) {
+                return Optional.of(mapRowToCategory(response));
+            } else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+            return Optional.empty();
+        }
+    }
+
+    public ArrayList<ItemCategory> getCategories() {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM categories;")) {
+            ResultSet response = statement.executeQuery();
+            ArrayList<ItemCategory> locations = new ArrayList<>();
+
+            while (response.next()) {
+                locations.add(mapRowToCategory(response));
             }
 
             return locations;
@@ -448,7 +561,6 @@ public class DataManager {
         }
         configurationData.setDebugEnabled(enabled);
     }
-
 
     public void addLocation(ItemLocation location) {
         if (currentConnection == null) {
@@ -502,6 +614,312 @@ public class DataManager {
 
         try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM locations WHERE id = ?")) {
             statement.setInt(1, databaseId);
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void addGroup(ItemGroup group) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (group == null) {
+            return;
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("INSERT INTO groups (name, description) VALUES (?, ?)")) {
+            statement.setString(1, group.name());
+            statement.setString(2, group.description());
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void updateGroup(int databaseId, ItemGroup data) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (databaseId == -1) {
+            throw new IllegalArgumentException("Group ID cannot be -1!");
+        }
+
+        if (data == null) {
+            throw new IllegalArgumentException("Group data cannot be null!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("UPDATE groups SET name = ?, description = ? WHERE id = ?")) {
+            statement.setString(1, data.name());
+            statement.setString(2, data.description());
+            statement.setInt(3, databaseId);
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void deleteGroup(int databaseId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (databaseId == -1) {
+            throw new IllegalArgumentException("Group ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM groups WHERE id = ?")) {
+            statement.setInt(1, databaseId);
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void addToGroup(int itemId, int groupId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (itemId == -1) {
+            throw new IllegalArgumentException("Item ID cannot be -1!");
+        }
+
+        if (groupId == -1) {
+            throw new IllegalArgumentException("Group ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("INSERT INTO group_elements (item_id, group_id) VALUES (?, ?)")) {
+            statement.setInt(1, itemId);
+            statement.setInt(2, groupId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void removeFromGroup(int itemId, int groupId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (itemId == -1) {
+            throw new IllegalArgumentException("Item ID cannot be -1!");
+        }
+
+        if (groupId == -1) {
+            throw new IllegalArgumentException("Group ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM group_elements WHERE item_id = ? AND group_id = ?")) {
+            statement.setInt(1, itemId);
+            statement.setInt(2, groupId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void clearGroups(int itemId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (itemId == -1) {
+            throw new IllegalArgumentException("Item ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM group_elements WHERE item_id = ?")) {
+            statement.setInt(1, itemId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void addCategory(ItemCategory category) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (category == null) {
+            return;
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("INSERT INTO categories (name, description) VALUES (?, ?)")) {
+            statement.setString(1, category.name());
+            statement.setString(2, category.description());
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void updateCategory(int databaseId, ItemCategory data) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (databaseId == -1) {
+            throw new IllegalArgumentException("Category ID cannot be -1!");
+        }
+
+        if (data == null) {
+            throw new IllegalArgumentException("Category data cannot be null!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("UPDATE categories SET name = ?, description = ? WHERE id = ?")) {
+            statement.setString(1, data.name());
+            statement.setString(2, data.description());
+            statement.setInt(3, databaseId);
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void deleteCategory(int databaseId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (databaseId == -1) {
+            throw new IllegalArgumentException("Category ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM categories WHERE id = ?")) {
+            statement.setInt(1, databaseId);
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void addToCategory(int itemId, int categoryId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (itemId == -1) {
+            throw new IllegalArgumentException("Item ID cannot be -1!");
+        }
+
+        if (categoryId == -1) {
+            throw new IllegalArgumentException("Category ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("INSERT INTO category_elements (item_id, category_id) VALUES (?, ?)")) {
+            statement.setInt(1, itemId);
+            statement.setInt(2, categoryId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void removeFromCategory(int itemId, int categoryId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (itemId == -1) {
+            throw new IllegalArgumentException("Item ID cannot be -1!");
+        }
+
+        if (categoryId == -1) {
+            throw new IllegalArgumentException("Category ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM category_elements WHERE item_id = ? AND category_id = ?")) {
+            statement.setInt(1, itemId);
+            statement.setInt(2, categoryId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void clearCategories(int itemId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (itemId == -1) {
+            throw new IllegalArgumentException("Item ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM category_elements WHERE item_id = ?")) {
+            statement.setInt(1, itemId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+
+    public void addInventoryItem(PantryItem item) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (item == null) {
+            return;
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("INSERT INTO inventory (name, quantity, quantity_per_pack, preferred_min_quantity, expires_at, last_stocked_at, last_stocked_quantity, location, description, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+            statement.setString(1, item.name());
+            statement.setDouble(2, item.quantity());
+            statement.setDouble(3, item.quantityPerPack());
+            statement.setDouble(4, item.preferredMinimumQuantity());
+            statement.setDate(5, item.expiresAt() != null ? Date.valueOf(item.expiresAt()) : null);
+            statement.setTimestamp(6, item.lastStockedAt() != null ? Timestamp.valueOf(item.lastStockedAt()) : null);
+            statement.setDouble(7, item.lastStockedQuantity());
+            statement.setInt(8, item.locationId());
+            statement.setString(9, item.description());
+            statement.setString(10, item.type().name());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+    
+    public void updateInventoryItem(int itemId, PantryItem data) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (itemId == -1) {
+            throw new IllegalArgumentException("Item ID cannot be -1!");
+        }
+
+        if (data == null) {
+            return;
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("UPDATE inventory SET name = ?, quantity = ?, quantity_per_pack = ?, preferred_min_quantity = ?, expires_at = ?, last_stocked_at = ?, last_stocked_quantity = ?, location = ?, description = ?, type = ? WHERE id = ?")) {
+            statement.setString(1, data.name());
+            statement.setDouble(2, data.quantity());
+            statement.setDouble(3, data.quantityPerPack());
+            statement.setDouble(4, data.preferredMinimumQuantity());
+            statement.setDate(5, Date.valueOf(data.expiresAt()));
+            statement.setTimestamp(6, Timestamp.valueOf(data.lastStockedAt()));
+            statement.setDouble(7, data.lastStockedQuantity());
+            statement.setInt(8, data.locationId());
+            statement.setString(9, data.description());
+            statement.setString(10, data.type().name());
+            statement.setInt(11, itemId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+        }
+    }
+    
+    public void deleteInventoryItem(int itemId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (itemId == -1) {
+            return;
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM inventory WHERE id = ?")) {
+            statement.setInt(1, itemId);
+            statement.executeUpdate();
         } catch (SQLException e) {
             logger.logStackTrace(e);
         }

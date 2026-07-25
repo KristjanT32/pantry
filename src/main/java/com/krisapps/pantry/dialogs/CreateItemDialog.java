@@ -102,7 +102,7 @@ public class CreateItemDialog extends PantryDialog<PantryItem> {
                         noExpirationCheckbox.isSelected() ? null : expirationDatePicker.getValue(),
                         null,
                         0d,
-                        -1 /* TODO: Change to actual logic when locations are implemented */,
+                        0 /* TODO: Change to actual logic when locations are implemented */,
                         typeSelector.getValue() != null ? typeSelector.getValue() : ItemType.GENERIC
                 );
             }

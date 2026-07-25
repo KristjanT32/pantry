@@ -36,7 +36,7 @@ public class UpdateInventoryController {
             Optional<PantryItem> item = dialog.showAndWait();
 
             if (item.isPresent()) {
-                System.out.println(item);
+                primaryController.data.addInventoryItem(item.get());
             }
         });
     }

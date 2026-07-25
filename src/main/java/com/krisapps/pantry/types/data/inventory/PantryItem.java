@@ -8,7 +8,7 @@ public record PantryItem(
         String name,
         String description,
         double quantity,
-        double quantityPerPackage,
+        double quantityPerPack,
         double preferredMinimumQuantity,
         LocalDate expiresAt,
         LocalDateTime lastStockedAt,
@@ -30,6 +30,6 @@ public record PantryItem(
      * @return the total units divided by unit count per pack
      */
     double packs() {
-        return quantity / quantityPerPackage;
+        return quantity / quantityPerPack;
     }
 }
