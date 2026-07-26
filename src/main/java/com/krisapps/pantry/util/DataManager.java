@@ -5,10 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.stream.JsonReader;
 import com.krisapps.pantry.types.data.ConfigurationData;
-import com.krisapps.pantry.types.data.inventory.ItemCategory;
-import com.krisapps.pantry.types.data.inventory.ItemGroup;
-import com.krisapps.pantry.types.data.inventory.ItemLocation;
-import com.krisapps.pantry.types.data.inventory.PantryItem;
+import com.krisapps.pantry.types.data.inventory.*;
 import com.krisapps.pantry.util.misc.LocalDateTimeTypeAdapter;
 import com.krisapps.pantry.util.misc.LocalDateTypeAdapter;
 import javafx.application.Platform;
@@ -386,7 +383,7 @@ public class DataManager {
                 row.getInt("id"),
                 row.getString("name"),
                 row.getString("description"),
-                null /* Replace with query for parent group based on id */
+                getGroup(row.getInt("parent_group_id")).orElse(null)
         );
     }
 
@@ -395,6 +392,22 @@ public class DataManager {
                 row.getInt("id"),
                 row.getString("name"),
                 row.getString("description")
+        );
+    }
+
+    public PantryItem mapRowToItem(ResultSet row) throws SQLException {
+        return new PantryItem(
+                row.getInt("id"),
+                row.getString("name"),
+                row.getString("description"),
+                row.getDouble("quantity"),
+                row.getDouble("quantity_per_pack"),
+                row.getDouble("preferred_min_quantity"),
+                row.getDate("expires_at") != null ? row.getDate("expires_at").toLocalDate() : null,
+                row.getTimestamp("last_stocked_at") != null ? row.getTimestamp("last_stocked_at").toLocalDateTime() : null,
+                row.getDouble("last_stocked_quantity"),
+                getLocation(row.getInt("location")).orElse(null),
+                ItemType.valueOf(row.getString("type"))
         );
     }
 
@@ -486,6 +499,27 @@ public class DataManager {
         }
     }
 
+    public ArrayList<ItemGroup> getGroups(int itemId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM group_elements JOIN groups g ON g.id = group_id WHERE item_id = ?")) {
+            statement.setInt(1, itemId);
+            ResultSet response = statement.executeQuery();
+            ArrayList<ItemGroup> locations = new ArrayList<>();
+
+            while (response.next()) {
+                locations.add(mapRowToGroup(response));
+            }
+
+            return locations;
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+            return new ArrayList<>();
+        }
+    }
+
     public Optional<ItemCategory> getCategory(int categoryId) {
         if (currentConnection == null) {
             currentConnection = getDatabaseConnection();
@@ -524,6 +558,71 @@ public class DataManager {
             }
 
             return locations;
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+            return new ArrayList<>();
+        }
+    }
+
+    public ArrayList<ItemCategory> getCategories(int itemId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM category_elements JOIN categories c ON c.id = category_id WHERE item_id = ?;")) {
+            statement.setInt(1, itemId);
+            ResultSet response = statement.executeQuery();
+            ArrayList<ItemCategory> locations = new ArrayList<>();
+
+            while (response.next()) {
+                locations.add(mapRowToCategory(response));
+            }
+
+            return locations;
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+            return new ArrayList<>();
+        }
+    }
+
+    public Optional<PantryItem> getItem(int itemId) {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        if (itemId == -1) {
+            throw new IllegalArgumentException("Item ID cannot be -1!");
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM inventory WHERE id = ?")) {
+            statement.setInt(1, itemId);
+            ResultSet response = statement.executeQuery();
+
+            if (response.next()) {
+                return Optional.of(mapRowToItem(response));
+            } else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            logger.logStackTrace(e);
+            return Optional.empty();
+        }
+    }
+
+    public ArrayList<PantryItem> getItems() {
+        if (currentConnection == null) {
+            currentConnection = getDatabaseConnection();
+        }
+
+        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM inventory;")) {
+            ResultSet response = statement.executeQuery();
+            ArrayList<PantryItem> items = new ArrayList<>();
+
+            while (response.next()) {
+                items.add(mapRowToItem(response));
+            }
+
+            return items;
         } catch (SQLException e) {
             logger.logStackTrace(e);
             return new ArrayList<>();
@@ -868,7 +967,7 @@ public class DataManager {
             statement.setDate(5, item.expiresAt() != null ? Date.valueOf(item.expiresAt()) : null);
             statement.setTimestamp(6, item.lastStockedAt() != null ? Timestamp.valueOf(item.lastStockedAt()) : null);
             statement.setDouble(7, item.lastStockedQuantity());
-            statement.setInt(8, item.locationId());
+            statement.setInt(8, item.location() != null ? item.location().databaseId() : 0);
             statement.setString(9, item.description());
             statement.setString(10, item.type().name());
             statement.executeUpdate();
@@ -898,7 +997,7 @@ public class DataManager {
             statement.setDate(5, Date.valueOf(data.expiresAt()));
             statement.setTimestamp(6, Timestamp.valueOf(data.lastStockedAt()));
             statement.setDouble(7, data.lastStockedQuantity());
-            statement.setInt(8, data.locationId());
+            statement.setInt(8, data.location() != null ? data.location().databaseId() : 0);
             statement.setString(9, data.description());
             statement.setString(10, data.type().name());
             statement.setInt(11, itemId);

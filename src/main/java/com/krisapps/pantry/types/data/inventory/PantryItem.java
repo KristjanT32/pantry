@@ -13,7 +13,7 @@ public record PantryItem(
         LocalDate expiresAt,
         LocalDateTime lastStockedAt,
         double lastStockedQuantity,
-        int locationId,
+        ItemLocation location,
         ItemType type
 ) {
 

@@ -108,7 +108,7 @@
       </HBox>
       <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
          <children>
-            <ListView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="notification-list" VBox.vgrow="ALWAYS">
+            <ListView fx:id="inventoryList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="notification-list" VBox.vgrow="ALWAYS">
                <VBox.margin>
                   <Insets top="10.0" />
                </VBox.margin>
