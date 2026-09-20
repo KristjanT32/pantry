@@ -1,8 +1,15 @@
 package com.krisapps.pantry.dialogs;
 
 import com.krisapps.pantry.types.PantryDialog;
+import com.krisapps.pantry.types.data.inventory.ItemCategory;
+import com.krisapps.pantry.types.data.inventory.ItemGroup;
 import com.krisapps.pantry.types.data.inventory.ItemType;
 import com.krisapps.pantry.types.data.inventory.PantryItem;
+import com.krisapps.pantry.ui.combobox.ItemCategoryComboboxCellFactory;
+import com.krisapps.pantry.ui.combobox.ItemGroupComboboxCellFactory;
+import com.krisapps.pantry.ui.combobox.cell.ItemCategoryComboboxCell;
+import com.krisapps.pantry.ui.combobox.cell.ItemGroupComboboxCell;
+import com.krisapps.pantry.util.DataManager;
 import com.krisapps.pantry.util.PopupManager;
 import com.krisapps.pantry.util.misc.Formats;
 import javafx.fxml.FXML;
@@ -20,6 +27,12 @@ public class CreateItemDialog extends PantryDialog<PantryItem> {
 
     @FXML
     private ComboBox<ItemType> typeSelector;
+
+    @FXML
+    private ComboBox<ItemGroup> groupSelector;
+
+    @FXML
+    private ComboBox<ItemCategory> categorySelector;
 
     @FXML
     private TextField unitsPerPackField;
@@ -53,12 +66,22 @@ public class CreateItemDialog extends PantryDialog<PantryItem> {
 
     private boolean canClose = true;
 
+    private final DataManager data = DataManager.getInstance();
+
     public CreateItemDialog() {
         super("add-inventory-item.fxml", "Create new item entry", "edit_96.png");
         getDialogPane().getButtonTypes().setAll(
                 new ButtonType("Create", ButtonBar.ButtonData.APPLY),
                 new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
         );
+
+        groupSelector.setCellFactory(new ItemGroupComboboxCellFactory());
+        categorySelector.setCellFactory(new ItemCategoryComboboxCellFactory());
+        groupSelector.setButtonCell(new ItemGroupComboboxCell());
+        categorySelector.setButtonCell(new ItemCategoryComboboxCell());
+
+        groupSelector.getItems().setAll(data.getGroups());
+        categorySelector.getItems().setAll(data.getCategories());
 
         ownedUnitsField.setText("0.00");
         unitsPerPackField.setText("1.00");
@@ -103,7 +126,9 @@ public class CreateItemDialog extends PantryDialog<PantryItem> {
                         null,
                         0d,
                         null,
-                        typeSelector.getValue() != null ? typeSelector.getValue() : ItemType.GENERIC
+                        typeSelector.getValue() != null ? typeSelector.getValue() : ItemType.GENERIC,
+                        groupSelector.getValue() != null ? groupSelector.getValue() : ItemGroup.NONE,
+                        categorySelector.getValue() != null ? categorySelector.getValue() : ItemCategory.NONE
                 );
             }
             return null;

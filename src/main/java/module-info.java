@@ -15,6 +15,8 @@ module com.krisapps.pantry {
     opens com.krisapps.pantry.dialogs to javafx.fxml;
     opens com.krisapps.pantry.ui.listview.cell to javafx.fxml;
     opens com.krisapps.pantry.types.data to com.google.gson;
+    opens com.krisapps.pantry.ui.combobox.cell to javafx.fxml;
+
 
     exports com.krisapps.pantry.util;
     exports com.krisapps.pantry.controllers;

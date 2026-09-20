@@ -40,6 +40,8 @@ public class DashboardController {
     private PantryController primaryController;
     private final DataManager data = DataManager.getInstance();
 
+    /* TODO: Figure out a good way of having multiple "programs" in Pantry, as currently preloading also calls the initialize method, which means that either all data is pre-loaded on init, or we do something else. */
+
 
     @FXML
     public void initialize() {

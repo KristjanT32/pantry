@@ -14,7 +14,9 @@ public record PantryItem(
         LocalDateTime lastStockedAt,
         double lastStockedQuantity,
         ItemLocation location,
-        ItemType type
+        ItemType type,
+        ItemGroup group,
+        ItemCategory category
 ) {
 
     boolean isLowOnStock() {

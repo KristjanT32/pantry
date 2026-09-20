@@ -35,9 +35,7 @@ public class UpdateInventoryController {
             CreateItemDialog dialog = new CreateItemDialog();
             Optional<PantryItem> item = dialog.showAndWait();
 
-            if (item.isPresent()) {
-                primaryController.data.addInventoryItem(item.get());
-            }
+            item.ifPresent(pantryItem -> primaryController.data.addInventoryItem(pantryItem));
         });
     }
 }

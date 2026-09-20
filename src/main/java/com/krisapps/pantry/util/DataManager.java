@@ -162,34 +162,18 @@ public class DataManager {
                     	"location"	INTEGER,
                     	"description"	TEXT NOT NULL DEFAULT 'No description.',
                     	"type"	TEXT NOT NULL DEFAULT 'GENERIC',
+                    	"group_id"	INTEGER DEFAULT 0,
+                    	"category_id"	INTEGER DEFAULT 0,
                     	PRIMARY KEY("id" AUTOINCREMENT),
+                    	FOREIGN KEY("category_id") REFERENCES "categories"("id"),
+                    	FOREIGN KEY("group_id") REFERENCES "groups"("id"),
                     	CONSTRAINT "location_fk" FOREIGN KEY("location") REFERENCES "locations"("id")
                     );
                     """);
 
-            // Create list item tables for categories and groups
-            statement.execute("""
-                    CREATE TABLE IF NOT EXISTS "group_elements" (
-                    	"relation_id"	INTEGER NOT NULL,
-                    	"item_id"	INTEGER NOT NULL,
-                    	"group_id"	INTEGER NOT NULL,
-                    	PRIMARY KEY("relation_id" AUTOINCREMENT),
-                    	CONSTRAINT "group_fk" FOREIGN KEY("group_id") REFERENCES "groups"("id"),
-                    	CONSTRAINT "item_fk" FOREIGN KEY("item_id") REFERENCES "inventory"("id")
-                    )
-                    """);
-            statement.execute("""
-                    CREATE TABLE IF NOT EXISTS "category_elements" (
-                    	"relation_id"	INTEGER NOT NULL,
-                    	"item_id"	INTEGER NOT NULL,
-                    	"category_id"	INTEGER NOT NULL,
-                    	PRIMARY KEY("relation_id" AUTOINCREMENT),
-                    	CONSTRAINT "category_fk" FOREIGN KEY("category_id") REFERENCES "categories"("id"),
-                    	CONSTRAINT "item_fk" FOREIGN KEY("item_id") REFERENCES "inventory"("id")
-                    )
-                    """);
-
             statement.execute("INSERT OR IGNORE INTO locations (id, name, description) VALUES (0, 'No location assigned', 'There is no location assigned to this item.')");
+            statement.execute("INSERT OR IGNORE INTO groups (id, name, description) VALUES (0, 'No group assigned', 'There is no group assigned to this item.')");
+            statement.execute("INSERT OR IGNORE INTO categories (id, name, description) VALUES (0, 'No category assigned', 'There is no category assigned to this item.')");
             statement.execute("PRAGMA foreign_keys = ON;");
             statement.execute("PRAGMA user_version = 1");
             log("Database successfully initialized!");
@@ -383,7 +367,7 @@ public class DataManager {
                 row.getInt("id"),
                 row.getString("name"),
                 row.getString("description"),
-                getGroup(row.getInt("parent_group_id")).orElse(null)
+                row.getInt("parent_group_id") != 0 ? getGroup(row.getInt("parent_group_id")).orElse(null) : null
         );
     }
 
@@ -407,7 +391,9 @@ public class DataManager {
                 row.getTimestamp("last_stocked_at") != null ? row.getTimestamp("last_stocked_at").toLocalDateTime() : null,
                 row.getDouble("last_stocked_quantity"),
                 getLocation(row.getInt("location")).orElse(null),
-                ItemType.valueOf(row.getString("type"))
+                ItemType.valueOf(row.getString("type")),
+                getGroup(row.getInt("group_id")).orElse(ItemGroup.NONE),
+                getCategory(row.getInt("category_id")).orElse(ItemCategory.NONE)
         );
     }
 
@@ -499,27 +485,6 @@ public class DataManager {
         }
     }
 
-    public ArrayList<ItemGroup> getGroups(int itemId) {
-        if (currentConnection == null) {
-            currentConnection = getDatabaseConnection();
-        }
-
-        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM group_elements JOIN groups g ON g.id = group_id WHERE item_id = ?")) {
-            statement.setInt(1, itemId);
-            ResultSet response = statement.executeQuery();
-            ArrayList<ItemGroup> locations = new ArrayList<>();
-
-            while (response.next()) {
-                locations.add(mapRowToGroup(response));
-            }
-
-            return locations;
-        } catch (SQLException e) {
-            logger.logStackTrace(e);
-            return new ArrayList<>();
-        }
-    }
-
     public Optional<ItemCategory> getCategory(int categoryId) {
         if (currentConnection == null) {
             currentConnection = getDatabaseConnection();
@@ -550,27 +515,6 @@ public class DataManager {
         }
 
         try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM categories;")) {
-            ResultSet response = statement.executeQuery();
-            ArrayList<ItemCategory> locations = new ArrayList<>();
-
-            while (response.next()) {
-                locations.add(mapRowToCategory(response));
-            }
-
-            return locations;
-        } catch (SQLException e) {
-            logger.logStackTrace(e);
-            return new ArrayList<>();
-        }
-    }
-
-    public ArrayList<ItemCategory> getCategories(int itemId) {
-        if (currentConnection == null) {
-            currentConnection = getDatabaseConnection();
-        }
-
-        try (PreparedStatement statement = currentConnection.prepareStatement("SELECT * FROM category_elements JOIN categories c ON c.id = category_id WHERE item_id = ?;")) {
-            statement.setInt(1, itemId);
             ResultSet response = statement.executeQuery();
             ArrayList<ItemCategory> locations = new ArrayList<>();
 
@@ -773,7 +717,12 @@ public class DataManager {
         }
     }
 
-    public void addToGroup(int itemId, int groupId) {
+    /**
+     * Updates an item's group to the supplied group ID.
+     * @param itemId The item whose group to change.
+     * @param groupId The group ID of the group to assign to the item.
+     */
+    public void updateItemGroup(int itemId, int groupId) {
         if (currentConnection == null) {
             currentConnection = getDatabaseConnection();
         }
@@ -786,16 +735,20 @@ public class DataManager {
             throw new IllegalArgumentException("Group ID cannot be -1!");
         }
 
-        try (PreparedStatement statement = currentConnection.prepareStatement("INSERT INTO group_elements (item_id, group_id) VALUES (?, ?)")) {
-            statement.setInt(1, itemId);
-            statement.setInt(2, groupId);
+        try (PreparedStatement statement = currentConnection.prepareStatement("UPDATE inventory SET group_id = ? WHERE id = ?;")) {
+            statement.setInt(1, groupId);
+            statement.setInt(2, itemId);
             statement.executeUpdate();
         } catch (SQLException e) {
             logger.logStackTrace(e);
         }
     }
 
-    public void removeFromGroup(int itemId, int groupId) {
+    /**
+     * Sets an item's group to be <code>0</code> (no group assigned).
+     * @param itemId The item whose group to change.
+     */
+    public void clearItemGroup(int itemId) {
         if (currentConnection == null) {
             currentConnection = getDatabaseConnection();
         }
@@ -804,34 +757,7 @@ public class DataManager {
             throw new IllegalArgumentException("Item ID cannot be -1!");
         }
 
-        if (groupId == -1) {
-            throw new IllegalArgumentException("Group ID cannot be -1!");
-        }
-
-        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM group_elements WHERE item_id = ? AND group_id = ?")) {
-            statement.setInt(1, itemId);
-            statement.setInt(2, groupId);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            logger.logStackTrace(e);
-        }
-    }
-
-    public void clearGroups(int itemId) {
-        if (currentConnection == null) {
-            currentConnection = getDatabaseConnection();
-        }
-
-        if (itemId == -1) {
-            throw new IllegalArgumentException("Item ID cannot be -1!");
-        }
-
-        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM group_elements WHERE item_id = ?")) {
-            statement.setInt(1, itemId);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            logger.logStackTrace(e);
-        }
+        updateItemGroup(itemId, 0);
     }
 
     public void addCategory(ItemCategory category) {
@@ -889,7 +815,12 @@ public class DataManager {
         }
     }
 
-    public void addToCategory(int itemId, int categoryId) {
+    /**
+     * Updates an item's category to the supplied category ID.
+     * @param itemId The item whose category to change.
+     * @param categoryId The category ID of the category to assign to the item.
+     */
+    public void updateItemCategory(int itemId, int categoryId) {
         if (currentConnection == null) {
             currentConnection = getDatabaseConnection();
         }
@@ -902,16 +833,20 @@ public class DataManager {
             throw new IllegalArgumentException("Category ID cannot be -1!");
         }
 
-        try (PreparedStatement statement = currentConnection.prepareStatement("INSERT INTO category_elements (item_id, category_id) VALUES (?, ?)")) {
-            statement.setInt(1, itemId);
-            statement.setInt(2, categoryId);
+        try (PreparedStatement statement = currentConnection.prepareStatement("UPDATE inventory SET category_id = ? WHERE id = ?;")) {
+            statement.setInt(1, categoryId);
+            statement.setInt(2, itemId);
             statement.executeUpdate();
         } catch (SQLException e) {
             logger.logStackTrace(e);
         }
     }
 
-    public void removeFromCategory(int itemId, int categoryId) {
+    /**
+     * Sets an item's category to be <code>0</code> (no category assigned).
+     * @param itemId The item whose category to change.
+     */
+    public void clearItemCategory(int itemId) {
         if (currentConnection == null) {
             currentConnection = getDatabaseConnection();
         }
@@ -920,34 +855,7 @@ public class DataManager {
             throw new IllegalArgumentException("Item ID cannot be -1!");
         }
 
-        if (categoryId == -1) {
-            throw new IllegalArgumentException("Category ID cannot be -1!");
-        }
-
-        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM category_elements WHERE item_id = ? AND category_id = ?")) {
-            statement.setInt(1, itemId);
-            statement.setInt(2, categoryId);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            logger.logStackTrace(e);
-        }
-    }
-
-    public void clearCategories(int itemId) {
-        if (currentConnection == null) {
-            currentConnection = getDatabaseConnection();
-        }
-
-        if (itemId == -1) {
-            throw new IllegalArgumentException("Item ID cannot be -1!");
-        }
-
-        try (PreparedStatement statement = currentConnection.prepareStatement("DELETE FROM category_elements WHERE item_id = ?")) {
-            statement.setInt(1, itemId);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            logger.logStackTrace(e);
-        }
+        updateItemCategory(itemId, 0);
     }
 
     public void addInventoryItem(PantryItem item) {
@@ -959,7 +867,7 @@ public class DataManager {
             return;
         }
 
-        try (PreparedStatement statement = currentConnection.prepareStatement("INSERT INTO inventory (name, quantity, quantity_per_pack, preferred_min_quantity, expires_at, last_stocked_at, last_stocked_quantity, location, description, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        try (PreparedStatement statement = currentConnection.prepareStatement("INSERT INTO inventory (name, quantity, quantity_per_pack, preferred_min_quantity, expires_at, last_stocked_at, last_stocked_quantity, location, description, type, group_id, category_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
             statement.setString(1, item.name());
             statement.setDouble(2, item.quantity());
             statement.setDouble(3, item.quantityPerPack());
@@ -970,7 +878,10 @@ public class DataManager {
             statement.setInt(8, item.location() != null ? item.location().databaseId() : 0);
             statement.setString(9, item.description());
             statement.setString(10, item.type().name());
+            statement.setInt(11, item.group().databaseId());
+            statement.setInt(12, item.category().databaseId());
             statement.executeUpdate();
+            logger.debug("New item added to the database: " + item);
         } catch (SQLException e) {
             logger.logStackTrace(e);
         }
@@ -989,7 +900,7 @@ public class DataManager {
             return;
         }
 
-        try (PreparedStatement statement = currentConnection.prepareStatement("UPDATE inventory SET name = ?, quantity = ?, quantity_per_pack = ?, preferred_min_quantity = ?, expires_at = ?, last_stocked_at = ?, last_stocked_quantity = ?, location = ?, description = ?, type = ? WHERE id = ?")) {
+        try (PreparedStatement statement = currentConnection.prepareStatement("UPDATE inventory SET name = ?, quantity = ?, quantity_per_pack = ?, preferred_min_quantity = ?, expires_at = ?, last_stocked_at = ?, last_stocked_quantity = ?, location = ?, description = ?, type = ?, group_id = ?, category_id = ? WHERE id = ?")) {
             statement.setString(1, data.name());
             statement.setDouble(2, data.quantity());
             statement.setDouble(3, data.quantityPerPack());
@@ -1000,7 +911,9 @@ public class DataManager {
             statement.setInt(8, data.location() != null ? data.location().databaseId() : 0);
             statement.setString(9, data.description());
             statement.setString(10, data.type().name());
-            statement.setInt(11, itemId);
+            statement.setInt(11, data.group().databaseId());
+            statement.setInt(12, data.category().databaseId());
+            statement.setInt(13, itemId);
             statement.executeUpdate();
         } catch (SQLException e) {
             logger.logStackTrace(e);

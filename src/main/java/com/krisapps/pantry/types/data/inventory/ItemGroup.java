@@ -11,4 +11,6 @@ public record ItemGroup(
     public boolean hasParentGroup() {
         return parent != null;
     }
+
+    public static final ItemGroup NONE = new ItemGroup(0, "No group assigned", "There is no group assigned to this item.", null);
 }
