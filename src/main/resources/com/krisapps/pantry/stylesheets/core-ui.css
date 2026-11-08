@@ -46,12 +46,12 @@
 /*<editor-fold desc="Labels>"*/
 
 .title {
-    -fx-font-size: 22px;
+    -fx-font-size: 18px;
     -fx-font-weight: bold;
 }
 
 .title-regular {
-    -fx-font-size: 22px;
+    -fx-font-size: 18px;
 }
 
 .normal-label.bold, .medium-label.bold, .large-label.bold, .xl-label.bold {
@@ -63,24 +63,24 @@
 }
 
 .header {
-    -fx-font-size: 16px;
+    -fx-font-size: 14px;
     -fx-font-weight: bold;
 }
 
 .normal-label {
-    -fx-font-size: 12px;
+    -fx-font-size: 10px;
 }
 
 .medium-label {
-    -fx-font-size: 14px;
+    -fx-font-size: 12px;
 }
 
 .large-label {
-    -fx-font-size: 16px;
+    -fx-font-size: 14px;
 }
 
 .xl-label {
-    -fx-font-size: 20px;
+    -fx-font-size: 16px;
 }
 
 /*</editor-fold>*/
@@ -271,11 +271,11 @@
 }
 
 .text-field.large, .text-area.large {
-    -fx-font-size: 16px;
+    -fx-font-size: 14px;
 }
 
 .text-field.xl, .text-area.xl {
-    -fx-font-size: 20px;
+    -fx-font-size: 18px;
 }
 
 .text-field, .text-area {
@@ -473,7 +473,7 @@
 /* <editor-fold desc="Combo Box"> */
 
 .combo-box {
-    -fx-font-size: 12px;
+    -fx-font-size: 10px;
 }
 
 .combo-box.medium {
@@ -481,11 +481,11 @@
 }
 
 .combo-box.large {
-    -fx-font-size: 16px;
+    -fx-font-size: 14px;
 }
 
 .combo-box.xl {
-    -fx-font-size: 20px;
+    -fx-font-size: 18px;
 }
 
 .combo-box {

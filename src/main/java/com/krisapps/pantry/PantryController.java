@@ -1,12 +1,18 @@
 package com.krisapps.pantry;
 
-import com.krisapps.pantry.types.ProgramSection;
+import com.krisapps.pantry.controllers.DashboardController;
+import com.krisapps.pantry.controllers.InventoryManagementController;
+import com.krisapps.pantry.controllers.PantryModuleController;
+import com.krisapps.pantry.controllers.UpdateInventoryController;
+import com.krisapps.pantry.types.Module;
 import com.krisapps.pantry.util.DataManager;
 import com.krisapps.pantry.util.Logging;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
+import javafx.util.Pair;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -25,7 +31,7 @@ public class PantryController {
 
     /* </editor-fold> */
 
-    final HashMap<ProgramSection, Parent> loadedSections = new HashMap<>();
+    final HashMap<Module, Pair<Parent, PantryModuleController>> loadedSections = new HashMap<>();
     final Logging logger = Logging.getInstance();
 
     private static PantryController instance;
@@ -44,30 +50,52 @@ public class PantryController {
     public void initialize() {
         preloadFXML();
         initUI();
-        switchToSection(ProgramSection.DASHBOARD);
+        initModule(Module.DASHBOARD);
     }
 
     private void preloadFXML() {
         logger.info("Preloading FXML...", "FXML");
-        for (ProgramSection section: ProgramSection.values()) {
-            if (section.getLayoutPath().isEmpty()) continue;
-            loadedSections.put(section, loadView(section));
+        for (Module module: Module.values()) {
+            if (module.getLayoutPath().isEmpty()) continue;
+            loadedSections.put(module, loadView(module));
         }
         logger.info("Done.", "FXML");
     }
 
-    private Parent loadView(ProgramSection view) {
+    private Pair<Parent, PantryModuleController> loadView(Module view) {
         try {
-            return FXMLLoader.load(PantryApplication.class.getResource("layouts/sections/" + view.getLayoutPath()));
-        } catch (IOException e) {
+            FXMLLoader loader = new FXMLLoader(PantryApplication.class.getResource("layouts/sections/" + view.getLayoutPath()));
+            switch (view) {
+                case DASHBOARD -> {
+                    loader.setController(new DashboardController());
+                }
+                case INVENTORY_MANAGEMENT -> {
+                    loader.setController(new InventoryManagementController());
+                }
+                case INVENTORY_UPDATE -> {
+                    loader.setController(new UpdateInventoryController());
+                }
+                case PLANOGRAM -> { }
+                case GROUP_MANAGEMENT -> { }
+                case EXPIRATION_DATES -> { }
+                case ANALYSIS -> { }
+            }
+
+            if (loader.getController() != null) {
+                ((PantryModuleController)loader.getController()).onModuleLoad();
+            }
+            return new Pair<>(loader.load(), loader.getController());
+        } catch (Exception e) {
             DataManager.log("Failed to preload section " + view.name() + " - " + e.getMessage());
             e.printStackTrace();
             return null;
         }
     }
 
-    public void switchToSection(ProgramSection section) {
-        root.getChildren().setAll(loadedSections.getOrDefault(section, loadView(section)));
+    public void initModule(Module module) {
+        Pair<Parent, PantryModuleController> m = loadedSections.getOrDefault(module, loadView(module));
+        root.getChildren().setAll(m.getKey());
+        m.getValue().onModuleOpen();
     }
 
     private void initUI() {

@@ -22,5 +22,6 @@ module com.krisapps.pantry {
     exports com.krisapps.pantry.controllers;
     exports com.krisapps.pantry.types.data.inventory;
     exports com.krisapps.pantry;
+    exports com.krisapps.pantry.types;
     opens com.krisapps.pantry.types.data.inventory to com.google.gson;
 }

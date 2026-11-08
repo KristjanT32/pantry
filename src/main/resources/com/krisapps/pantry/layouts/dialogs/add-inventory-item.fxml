@@ -15,7 +15,7 @@
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="770.0" prefWidth="666.0" spacing="10.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="647.0" prefWidth="647.0" spacing="5.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
    <padding>
       <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
    </padding>
@@ -25,7 +25,7 @@
             <Insets />
          </VBox.margin>
       </Label>
-      <VBox spacing="5.0">
+      <VBox spacing="5.0" VBox.vgrow="NEVER">
          <children>
             <Label styleClass="header" text="Item name (*)" />
             <TextField fx:id="nameField" minHeight="35.0" promptText="Name..." styleClass="large">
@@ -35,10 +35,10 @@
             </TextField>
          </children>
          <padding>
-            <Insets bottom="10.0" top="10.0" />
+            <Insets bottom="5.0" top="5.0" />
          </padding>
       </VBox>
-      <VBox spacing="5.0">
+      <VBox spacing="5.0" VBox.vgrow="NEVER">
          <children>
             <Label styleClass="header" text="Item description" />
             <TextField fx:id="descriptionField" minHeight="35.0" promptText="Description" styleClass="large">
@@ -48,41 +48,41 @@
             </TextField>
          </children>
          <padding>
-            <Insets bottom="10.0" top="10.0" />
+            <Insets bottom="5.0" top="5.0" />
          </padding>
       </VBox>
-      <VBox spacing="5.0">
+      <VBox spacing="5.0" VBox.vgrow="NEVER">
          <children>
             <Label styleClass="header" text="Type" />
             <ComboBox fx:id="typeSelector" maxWidth="1.7976931348623157E308" promptText="Select type..." styleClass="large" />
          </children>
          <padding>
-            <Insets bottom="10.0" top="10.0" />
+            <Insets bottom="5.0" top="5.0" />
          </padding>
       </VBox>
-      <HBox spacing="50.0">
+      <HBox spacing="50.0" VBox.vgrow="NEVER">
          <children>
-            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" HBox.hgrow="ALWAYS">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="5.0" HBox.hgrow="ALWAYS">
                <children>
                   <Label styleClass="header" text="Group" />
-                  <ComboBox fx:id="groupSelector" maxWidth="1.7976931348623157E308" promptText="Select group..." styleClass="large" />
+                  <ComboBox fx:id="groupSelector" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" promptText="Select group..." styleClass="large" VBox.vgrow="NEVER" />
                </children>
                <padding>
-                  <Insets bottom="10.0" top="10.0" />
+                  <Insets bottom="5.0" top="5.0" />
                </padding>
             </VBox>
-            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" HBox.hgrow="ALWAYS">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="5.0" HBox.hgrow="ALWAYS">
                <children>
                   <Label styleClass="header" text="Category" />
-                  <ComboBox fx:id="categorySelector" maxWidth="1.7976931348623157E308" promptText="Select category..." styleClass="large" />
+                  <ComboBox fx:id="categorySelector" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" promptText="Select category..." styleClass="large" VBox.vgrow="NEVER" />
                </children>
                <padding>
-                  <Insets bottom="10.0" top="10.0" />
+                  <Insets bottom="5.0" top="5.0" />
                </padding>
             </VBox>
          </children>
       </HBox>
-      <HBox spacing="50.0">
+      <HBox spacing="50.0" VBox.vgrow="NEVER">
          <children>
             <VBox spacing="5.0" HBox.hgrow="ALWAYS">
                <children>
@@ -94,7 +94,7 @@
                   </TextField>
                </children>
                <padding>
-                  <Insets bottom="10.0" top="10.0" />
+                  <Insets bottom="5.0" top="5.0" />
                </padding>
             </VBox>
             <VBox spacing="5.0" HBox.hgrow="ALWAYS">
@@ -107,7 +107,7 @@
                   </TextField>
                </children>
                <padding>
-                  <Insets bottom="10.0" top="10.0" />
+                  <Insets bottom="5.0" top="5.0" />
                </padding>
             </VBox>
             <VBox spacing="5.0" HBox.hgrow="ALWAYS">
@@ -120,12 +120,12 @@
                   </TextField>
                </children>
                <padding>
-                  <Insets bottom="10.0" top="10.0" />
+                  <Insets bottom="5.0" top="5.0" />
                </padding>
             </VBox>
          </children>
       </HBox>
-      <HBox spacing="25.0">
+      <HBox spacing="25.0" VBox.vgrow="NEVER">
          <children>
             <VBox spacing="5.0" HBox.hgrow="ALWAYS">
                <children>
@@ -137,7 +137,7 @@
                   </TextField>
                </children>
                <padding>
-                  <Insets bottom="10.0" top="10.0" />
+                  <Insets bottom="5.0" top="5.0" />
                </padding>
             </VBox>
             <VBox spacing="5.0" HBox.hgrow="ALWAYS">
@@ -150,12 +150,12 @@
                   </TextField>
                </children>
                <padding>
-                  <Insets bottom="10.0" top="10.0" />
+                  <Insets bottom="5.0" top="5.0" />
                </padding>
             </VBox>
          </children>
       </HBox>
-      <Separator maxHeight="25.0" maxWidth="1.7976931348623157E308" minHeight="25.0" orientation="VERTICAL" prefHeight="25.0" visible="false" VBox.vgrow="SOMETIMES" />
+      <Separator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="25.0" orientation="VERTICAL" prefHeight="25.0" visible="false" VBox.vgrow="ALWAYS" />
       <VBox spacing="10.0">
          <children>
             <CheckBox fx:id="noExpirationCheckbox" maxWidth="1.7976931348623157E308" mnemonicParsing="false" styleClass="medium-label" text="No expiration date">

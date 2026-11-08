@@ -1,6 +1,6 @@
 package com.krisapps.pantry.types;
 
-public enum ProgramSection {
+public enum Module {
     DASHBOARD("dashboard.fxml"),
     INVENTORY_MANAGEMENT("management.fxml"),
     INVENTORY_UPDATE("update.fxml"),
@@ -13,7 +13,7 @@ public enum ProgramSection {
     ;
     private String layoutPath;
 
-    ProgramSection(String layoutPath) {
+    Module(String layoutPath) {
         this.layoutPath = layoutPath;
     }
 

@@ -13,11 +13,11 @@
             <Font name="Segoe UI Bold" size="14.0" />
          </font>
          <styleClass>
-            <String fx:value="large-label" />
+            <String fx:value="medium-label" />
             <String fx:value="bold" />
          </styleClass>
       </Label>
-      <Label fx:id="descriptionLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="medium-label" text="Category description..." wrapText="true">
+      <Label fx:id="descriptionLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="normal-label" text="Category description..." wrapText="true">
          <font>
             <Font name="Segoe UI Bold" size="14.0" />
          </font>

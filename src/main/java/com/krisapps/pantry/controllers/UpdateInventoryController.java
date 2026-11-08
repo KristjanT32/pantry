@@ -2,7 +2,7 @@ package com.krisapps.pantry.controllers;
 
 import com.krisapps.pantry.PantryController;
 import com.krisapps.pantry.dialogs.CreateItemDialog;
-import com.krisapps.pantry.types.ProgramSection;
+import com.krisapps.pantry.types.Module;
 import com.krisapps.pantry.types.data.inventory.PantryItem;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -10,7 +10,7 @@ import javafx.scene.control.MenuItem;
 
 import java.util.Optional;
 
-public class UpdateInventoryController {
+public class UpdateInventoryController implements PantryModuleController {
 
     @FXML
     private Button backButton;
@@ -28,7 +28,7 @@ public class UpdateInventoryController {
         primaryController = PantryController.getInstance();
 
         backButton.setOnAction(_ -> {
-            primaryController.switchToSection(ProgramSection.DASHBOARD);
+            primaryController.initModule(Module.DASHBOARD);
         });
 
         addItemButton.setOnAction(_ -> {
@@ -37,5 +37,20 @@ public class UpdateInventoryController {
 
             item.ifPresent(pantryItem -> primaryController.data.addInventoryItem(pantryItem));
         });
+    }
+
+    @Override
+    public void onModuleLoad() {
+
+    }
+
+    @Override
+    public void onModuleOpen() {
+
+    }
+
+    @Override
+    public void onModuleClose() {
+
     }
 }

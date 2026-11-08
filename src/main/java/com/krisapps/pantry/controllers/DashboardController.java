@@ -1,7 +1,7 @@
 package com.krisapps.pantry.controllers;
 
 import com.krisapps.pantry.PantryController;
-import com.krisapps.pantry.types.ProgramSection;
+import com.krisapps.pantry.types.Module;
 import com.krisapps.pantry.util.DataManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -12,9 +12,8 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.TimeUnit;
 
-public class DashboardController {
+public class DashboardController implements PantryModuleController {
 
     @FXML
     private VBox updateTile;
@@ -52,11 +51,11 @@ public class DashboardController {
 
     private void initUI() {
         updateTile.setOnMouseClicked(_ -> {
-            primaryController.switchToSection(ProgramSection.INVENTORY_UPDATE);
+            primaryController.initModule(Module.INVENTORY_UPDATE);
         });
 
         overviewTile.setOnMouseClicked(_ -> {
-            primaryController.switchToSection(ProgramSection.INVENTORY_MANAGEMENT);
+            primaryController.initModule(Module.INVENTORY_MANAGEMENT);
         });
 
         lastUpdateDateLabel.managedProperty().bind(lastUpdateDateLabel.visibleProperty());
@@ -94,5 +93,20 @@ public class DashboardController {
                 primaryNotificationPanel.getStyleClass().setAll(isWarning ? "notification-highlight-warning" : "notification-highlight-info", "notification-panel-secondary");
             }
         });
+    }
+
+    @Override
+    public void onModuleLoad() {
+
+    }
+
+    @Override
+    public void onModuleOpen() {
+
+    }
+
+    @Override
+    public void onModuleClose() {
+
     }
 }
